@@ -2,16 +2,11 @@
   position: relative;
 }
 
-.ant-upload-list {
-  .ant-upload-list-picture-card-container,
-  .ant-upload-select {
-    width: 146px;
-    height: 146px;
-  }
+.editor-wrapper {
+  width: 640px;
+  border: 1px solid rgb(240, 240, 240);
 }
 
-.publish-quill {
-  .ql-editor {
-    min-height: 300px;
-  }
+.editor {
+  height: 300px;
 }

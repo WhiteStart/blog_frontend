@@ -15,11 +15,11 @@ const { RangePicker } = DatePicker
 
 let i = 0
 
-// const parseDate = (str) => {
-//   return str.getFullYear() + '-' + (str.getMonth() + 1) + '-' + str.getDate() + ' ' + str.getHours() + ':' + str.getMinutes() + ':' + str.getSeconds()
-// }
+
+
 
 const Article = () => {
+
 
   // 列名定义
   const columns = [
@@ -74,10 +74,10 @@ const Article = () => {
               type="primary"
               shape="circle"
               icon={<EditOutlined />}
-              onClick={() => navigateToPublish(data.id)} />
+              onClick={() => navigateToPublish(data.articleId)} />
             <Popconfirm
               title="确认删除该条文章吗?"
-              onConfirm={() => delArticle(data.id)}
+              onConfirm={() => delArticle(data.articleId)}
               okText="确认"
               cancelText="取消"
             >
@@ -106,26 +106,30 @@ const Article = () => {
     })
   }
   // 删除一条记录
-  const delArticle = async id => {
-    await http.get(`/deleteArticle?id=${id}`)
+  const delArticle = async articleId => {
+    await http.get(`/deleteArticle?articleId=${articleId}`)
     setParams({
       ...params
     })
   }
   // 跳转
   const nav = useNavigate()
-  const navigateToPublish = (id) => {
-    nav(`/publish?id=${id}`)
+  const navigateToPublish = (articleId) => {
+    nav(`/publish?articleId=${articleId}`)
   }
 
   // 按钮对应值
   const [value, setValue] = useState(1)
+
+  // 分类值渲染
+  const { typeStore } = useStore()
 
   // 文章列表数据管理
   const [article, setArticleList] = useState({
     list: [],
     count: 0
   })
+
   // 请求文章列表
   useEffect(() => {
     const fetchArticleList = async () => {
@@ -139,6 +143,7 @@ const Article = () => {
     fetchArticleList()
   }, [params])
 
+  // 表单提交
   const onFinish = async values => {
     const { type, date } = values
     const _params = {}
@@ -154,8 +159,6 @@ const Article = () => {
       ..._params
     })
   }
-
-  const { typeStore } = useStore()
 
   return (
     <div>
@@ -187,7 +190,7 @@ const Article = () => {
             <Select
               style={{ width: '150px' }}
               showSearch
-              placeholder="请选择频道"
+              placeholder="请选择分类"
               optionFilterProp="children"
               // onChange={onChange}
               // onSearch={onSearch}

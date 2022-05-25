@@ -8,19 +8,21 @@ import {
   Upload,
   Space,
   Select,
-  message
+  message,
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
-import ReactQuill from 'react-quill'
-import 'react-quill/dist/quill.snow.css'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useStore } from '@/store'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { http } from '@/utils'
 import { v4 as uuid } from 'uuid'
+// import { Editor } from 'react-draft-wysiwyg'
+// import { EditorState } from 'draft-js'
+// import '../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css'
 import './index.scss'
 
 const { Option } = Select
+const { TextArea } = Input
 
 const uploadButton = (
   <div>
@@ -28,7 +30,6 @@ const uploadButton = (
     <div style={{ marginTop: 8 }}>Upload</div>
   </div>
 )
-
 
 // beforeUpload限制用户上传图片的大小和格式
 function beforeUpload (file) {
@@ -49,9 +50,8 @@ const Publish = () => {
   const { typeStore } = useStore()
 
   // 存放上传图片的列表
-  const [photoList, setPhotoList] = useState([])
+  const [imgList, setImgList] = useState([])
   const handleUpload = ({ fileList }) => {
-    console.log(fileList)
     const res = fileList.map(file => {
       if (file.response) {
         return {
@@ -60,29 +60,54 @@ const Publish = () => {
       }
       return file
     })
-    setPhotoList(res)
+    setImgList(res)
   }
 
+  // 按钮
   const [imgCount, setImgCount] = useState(1)
   const radioChange = (e) => {
     const count = e.target.value
     setImgCount(count)
   }
 
+  // article页面点击编辑时跳转
+  const [params] = useSearchParams()
+  const articleId = params.get('articleId')
+
+  // 表单提交
   const onFinish = async (values) => {
     const { content, title, type } = values
     const params = {
       content,
       title,
       type,
-      cover: photoList.map(item => item.url)
+      cover: imgList.map(item => item.url),
+      articleId: ""
     }
-    await http.post('/insertArticle', params)
+    // console.log(editorState.getCurrentContent())
+    if (articleId) {
+      params.articleId = articleId
+      await http.post('/updateArticle', params)
+    } else {
+      await http.post('/insertArticle', params)
+    }
   }
 
-  // const fileListRef = useRef([])
+  const form = useRef(null)
+  useEffect(() => {
+    const getArticle = async () => {
+      const res = await http.get(`/getArticle?articleId=${articleId}`)
+      const { cover, ...formValue } = res.data
+      form.current.setFieldsValue({ ...formValue })
+      const imgs = cover.map(url => ({ url }))
+      setImgList(imgs)
+    }
+    if (articleId) {
+      getArticle()
+    }
+  }, [articleId])
 
-
+  // const [editorState, setEditorState] = useState(EditorState.createEmpty())
 
   return (
     <div className="publish">
@@ -92,16 +117,17 @@ const Publish = () => {
             <Breadcrumb.Item>
               <Link to="/home">首页</Link>
             </Breadcrumb.Item>
-            <Breadcrumb.Item>发布文章</Breadcrumb.Item>
+            <Breadcrumb.Item>
+              {articleId ? '修改文章' : '发布文章'}
+            </Breadcrumb.Item>
           </Breadcrumb>
         }
       >
         <Form
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 16 }}
-          // 通过 Form 组件的 initialValues 为富文本编辑器设置初始值，否则会报错
-          initialValues={{ type: 1, content: '' }}
           onFinish={onFinish}
+          ref={form}
         >
           <Form.Item
             label="标题"
@@ -139,29 +165,31 @@ const Publish = () => {
               className="avatar-uploader"
               showUploadList
               action="http://127.0.0.1:8081/uploadImage"
-              fileList={photoList}
+              fileList={imgList}
               onChange={handleUpload}
               beforeUpload={beforeUpload}
             >
-              {photoList.length < imgCount ? uploadButton : null}
+              {imgList.length < imgCount ? uploadButton : null}
             </Upload>
             )}
           </Form.Item>
           <Form.Item
-            label="内容"
-            name="content"
-            rules={[{ required: true, message: '请输入文章内容' }]}>
-            <ReactQuill
-              className="publish-quill"
-              theme="snow"
-              placeholder="请输入文章内容"
-            />
+            label="编辑区"
+            name="content">
+            {/* <Editor
+              editorState={editorState}
+              // toolbarClassName="editor-toolbar"
+              wrapperClassName="editor-wrapper"
+              editorClassName="editor"
+              onEditorStateChange={setEditorState}
+            /> */}
+            <TextArea rows={4} style={{ height: '300px' }} />
           </Form.Item>
 
           <Form.Item wrapperCol={{ offset: 4 }}>
             <Space>
               <Button size="large" type="primary" htmlType="submit">
-                发布文章
+                {articleId ? '修改文章' : '发布文章'}
               </Button>
             </Space>
           </Form.Item>

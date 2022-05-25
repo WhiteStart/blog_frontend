@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '@/store'
@@ -15,23 +15,28 @@ import './index.scss'
 
 const { Header, Sider } = Layout
 
-// const menuItems = [
-//   {
-//     key: '1',
-//     icon: <HomeOutlined />,
-//     name: '数据概览'
-//   },
-//   {
-//     key: '2',
-//     icon: <DiffOutlined />,
-//     name: '内容管理'
-//   },
-//   {
-//     key: '3',
-//     icon: <EditOutlined />,
-//     name: '发布文章'
-//   }
-// ]
+const menuItems = [
+  {
+    label: '数据概览',
+    key: '/',
+    icon: <HomeOutlined />
+  },
+  {
+    label: '内容管理',
+    key: '/article',
+    icon: <DiffOutlined />,
+  },
+  {
+    label: '发布文章',
+    key: '/publish',
+    icon: <EditOutlined />,
+  },
+  {
+    label: '导入圣遗物',
+    key: '/relic',
+    icon: <VerticalAlignBottomOutlined />
+  }
+]
 
 const GeekLayout = () => {
 
@@ -53,6 +58,27 @@ const GeekLayout = () => {
 
   const location = useLocation()
   const selectedKey = location.pathname
+
+  const nav = useNavigate()
+  const test = (value) => {
+    const { key } = value
+    switch (key) {
+      case ('/'):
+        nav('/')
+        break
+      case ('/article'):
+        nav('/article')
+        break
+      case ('/publish'):
+        nav('/publish')
+        break
+      case ('/relic'):
+        nav('/relic')
+        break
+      default:
+        console.log("index nav error")
+    }
+  }
 
   const navigate = useNavigate()
   const logout = async () => {
@@ -91,19 +117,9 @@ const GeekLayout = () => {
             theme="dark"
             defaultSelectedKeys={selectedKey}
             style={{ height: '100%', borderRight: 0 }}
+            items={menuItems}
+            onClick={test}
           >
-            <Menu.Item icon={<HomeOutlined />} key="/">
-              <Link to='/'>数据概览</Link>
-            </Menu.Item>
-            <Menu.Item icon={<DiffOutlined />} key="/article">
-              <Link to='/article'>内容管理</Link>
-            </Menu.Item>
-            <Menu.Item icon={<EditOutlined />} key="/publish">
-              <Link to='/publish'>发布文章</Link>
-            </Menu.Item>
-            <Menu.Item icon={<VerticalAlignBottomOutlined />} key="/relic">
-              <Link to='/relic'>导入圣遗物</Link>
-            </Menu.Item>
           </Menu>
         </Sider>
         <Layout className="layout-content" style={{ padding: 20 }}>
